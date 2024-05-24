@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:mediterappli/models/user_model.dart';
 import 'package:mediterappli/pages/app.dart'; // Import the main app page
 import 'package:mediterappli/pages/connexion.dart';
+import 'package:mediterappli/pages/home_page.dart';
 import 'package:mediterappli/services/auth_service.dart'; // Import the connexion page
 
 class Inscription extends StatefulWidget {
@@ -14,8 +16,10 @@ class _InscriptionState extends State<Inscription> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmpasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final _usernameController = TextEditingController();
+  bool _isLoading = false;
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -143,7 +147,7 @@ class _InscriptionState extends State<Inscription> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: TextFormField(
-                        controller: _confirmpasswordController,
+                        controller: _confirmPasswordController,
                         style: const TextStyle(
                           fontSize: 18, // Set the font size
                           color: Colors.black, // Set the text color
@@ -177,19 +181,27 @@ class _InscriptionState extends State<Inscription> {
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            bool result = await AuthService().register(
-                                _emailController.text,
+                            _formKey.currentState!.save();
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            User? user = await AuthService().signUp(
                                 _usernameController.text,
+                                _emailController.text,
                                 _passwordController.text);
 
-                            if (result) {
+                            if (user != null) {
+                              AuthService().setCurrentUser(user);
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const Connexion()),
+                                    builder: (context) => const App()),
                               );
                             }
                           }
+                          setState(() {
+                            _isLoading = false;
+                          });
                         },
                         style: ButtonStyle(
                           padding: MaterialStateProperty.all<EdgeInsets>(
@@ -201,15 +213,17 @@ class _InscriptionState extends State<Inscription> {
                                 0xFF4E797E), // Set the background color of the button
                           ),
                         ),
-                        child: const Text(
-                          "S'inscrire",
-                          style: TextStyle(
-                            fontSize:
-                                22, // Set the font size of the button text
-                            color: Colors
-                                .white, // Set the text color of the button text
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: Colors.grey,
+                              )
+                            : const Text(
+                                "S'inscrire",
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 20), // Add some spacing

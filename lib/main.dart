@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mediterappli/pages/inscription.dart';  // Import the inscription page
+import 'package:mediterappli/pages/inscription.dart';
 
 void main() {
   runApp(const MyApp());
